@@ -300,6 +300,13 @@ class Mailbox(models.Model):
             ('attachment' in msg.get('Content-Disposition', ''))
         ):
             filename = msg.get_filename()
+
+            # convert to unicode the filename to avoid
+            # .bin extension if filename is in
+            # "=?utf-8?B?6rCV64yA7IiYLCDsnbTqsr3slaDri5guanBn?=" form
+            if filename and not isinstance(filename, six.text_type):
+                filename = convert_header_to_unicode(filename)
+
             if not filename:
                 extension = mimetypes.guess_extension(msg.get_content_type())
             else:

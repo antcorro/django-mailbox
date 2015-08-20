@@ -60,6 +60,27 @@ class TestProcessEmail(EmailMessageTestCase):
             'heart.png',
         )
 
+    def test_message_with_decoded_attachment_filename(self):
+        message = self._get_email_object('message_with_decoded_attachment_filename.eml')
+
+        mailbox = Mailbox.objects.create()
+        msg = mailbox.process_incoming_message(message)
+
+        expected_count = 1
+        actual_count = msg.attachments.count()
+
+        self.assertEqual(
+            expected_count,
+            actual_count,
+        )
+
+        attachment = msg.attachments.all()[0]
+        self.assertEqual(
+            attachment.get_filename(),
+            six.u('\uac15\ub300\uc218, \uc774\uacbd\uc560\ub2d8.jpg'),
+        )
+
+
     def test_message_with_not_decoded_attachment_header(self):
         email_object = self._get_email_object(
             'message_with_not_decoded_attachment_header.eml',
@@ -79,7 +100,27 @@ class TestProcessEmail(EmailMessageTestCase):
         attachment = msg.attachments.all()[0]
         self.assertEqual(
             attachment.get_filename(),
-            u'\xc3\xb0\xcc\x9eo\xce\xb2\xcc\x9ele.png',
+            six.u('\xc3\xb0\xcc\x9eo\xce\xb2\xcc\x9ele.png'),
+        )
+
+    def test_message_with_rfc2231decoded_attachment_filename(self):
+        message = self._get_email_object('message_with_rfc2231decoded_attachment_filename.eml')
+
+        mailbox = Mailbox.objects.create()
+        msg = mailbox.process_incoming_message(message)
+
+        expected_count = 1
+        actual_count = msg.attachments.count()
+
+        self.assertEqual(
+            expected_count,
+            actual_count,
+        )
+
+        attachment = msg.attachments.all()[0]
+        self.assertEqual(
+            attachment.get_filename(),
+            u'\u2018\xf0\u031eo\u03b2\u031ele.jpg',
         )
 
     def test_message_get_text_body(self):
